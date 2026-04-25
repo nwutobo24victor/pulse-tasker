@@ -15,9 +15,7 @@ const PassCode = ({ usePasscode, setUsePasscode }: LoginType) => {
 
     const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
-    const { setData, post, processing } = useForm({
-        otp: '',
-    });
+    const { post, processing, transform } = useForm({ passcode: '' });
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
@@ -45,31 +43,35 @@ const PassCode = ({ usePasscode, setUsePasscode }: LoginType) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const otp = inputs.current.map((input) => input?.value || "").join("");
+        const passcode = inputs.current.map((input) => input?.value || "").join("");
 
-        
-        setData("otp", otp);
-
-        if (otp.length !== 4) {
+        if (passcode.length !== 4) {
             setErrorMessage({ field: 'passcode', message: 'Enter complete code' });
 
             return;
         }
 
+        transform((data) => ({
+            ...data,
+            passcode: passcode,
+        }));
 
-        post('/login-code', {
-            onSuccess: (data) => {
-                console.log('Response JSON:', data);
+        post("/login-code", {
+            onSuccess: (page) => {
+                console.log("Success:", page);
             },
-            onError: (msg) => {
-                console.error(msg);
+            onError: (errors) => {
+                console.error(errors);
+
             },
             onFinish: () => {
-                setData('otp', '');
-
+                inputs.current.forEach((input) => {
+                    if (input) {
+                        input.value = "";
+                    }
+                });
             },
         });
-
     };
 
     return (
@@ -89,6 +91,7 @@ const PassCode = ({ usePasscode, setUsePasscode }: LoginType) => {
                                     }}
                                     onChange={(e) => handleChange(e, i)}
                                     onKeyDown={(e) => handleKeyDown(e, i)}
+                                    placeholder='X'
                                     className="w-10 p-2 text-center rounded bg-gray-100 outline-none"
                                 />
                             ))}
