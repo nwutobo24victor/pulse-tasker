@@ -2,8 +2,8 @@ import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
 // import component
-import Login from '@/components/login';
-import Register from '@/components/register';
+import Login from '@/components/Login';
+import Register from '@/components/Register';
 
 interface AuthProps {
     title: string;
@@ -12,13 +12,11 @@ interface AuthProps {
 
 
 const Auth = ({ title }: AuthProps) => {
-    console.log(title);
-
     const [tab, setTab] = useState('login');
 
     return (
         <>
-            <Head title="Authentication">
+            <Head title={title}>
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
