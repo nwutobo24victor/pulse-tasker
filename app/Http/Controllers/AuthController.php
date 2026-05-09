@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class AuthController extends Controller
@@ -21,6 +23,27 @@ class AuthController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
         ]);
+
+        try {
+            $user = User::create([
+                'email' => $credentials['email'],
+                'username' => $credentials['username'],
+                'password' => Hash::make($credentials['password']),
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User created successfully',
+                'user' => $user
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage() // remove in production
+            ], 500);
+        }
     }
 
     public function loginWithUserPass(Request $request)
