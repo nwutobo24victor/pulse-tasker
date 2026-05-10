@@ -4,6 +4,7 @@ import { useState } from 'react';
 // import component
 import Login from '@/components/Login';
 import Register from '@/components/Register';
+import SweetAlert from '@/components/SweetAlert';
 
 interface AuthProps {
     title: string;
@@ -23,7 +24,12 @@ const Auth = ({ title }: AuthProps) => {
                     rel="stylesheet"
                 />
             </Head>
-            <div className="flex h-screen items-center justify-center bg-gray-100 text-gray-700">
+            <div className="relative flex h-screen items-center justify-center bg-gray-100 text-gray-700">
+
+                <div className='block'>
+                    <SweetAlert />
+                </div>
+
                 <div className="block w-full lg:w-xl h-fit p-4">
                     <div className="lg:relative block w-full bg-white p-4 lg:pt-10 rounded-2xl">
                         <div className="block w-full lg:w-md lg:absolute lg:-top-6 lg:left-1/2 lg:-translate-x-1/2">

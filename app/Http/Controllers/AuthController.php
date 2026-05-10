@@ -31,11 +31,17 @@ class AuthController extends Controller
                 'password' => Hash::make($credentials['password']),
             ]);
 
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'error' => 'User registration failed',
+                ]);
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'User created successfully',
-                'user' => $user
-            ], 201);
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([

@@ -1,74 +1,138 @@
-import { useForm } from '@inertiajs/react'
-import React, { useState } from "react";
+import axios from 'axios';
+import { useState } from 'react';
+
 
 const Register = () => {
-    // state for error messages
-    const [errorMessage, setErrorMessage] = useState({ field: '', message: '' });
 
-    const { data, setData, post, processing } = useForm({
-        email: '',
-        username: '',
-        password: '',
-        password_confirmation: ''
-    });
+    const [data, setData] = useState({ email: '', username: '', password: '', password_confirmation: '', });
+
+    const [serverError, setServerError] = useState({ email_error: '', username_error: '', password_error: '', });
+
+    const [errorMessage, setErrorMessage] = useState({ field: '', message: '', });
+
+    const [processing, setProcessing] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setData(name as 'email' | 'username' | 'password' | 'password_confirmation', value);
 
+        const { name, value } = e.target;
+
+        setData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+
+        // clear frontend errors
+        setErrorMessage({ field: '', message: '', });
+
+        // clear backend errors
+        setServerError({ email_error: '', username_error: '', password_error: '', });
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
 
-    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // clear old errors
+        setErrorMessage({ field: '', message: '', });
+
+        setServerError({ email_error: '', username_error: '', password_error: '', });
+
+        // frontend validation
         if (!data.email.trim()) {
-            setErrorMessage({ field: 'email', message: 'Please fill in email' });
+
+            setErrorMessage({
+                field: 'email',
+                message: 'Please fill in email',
+            });
 
             return;
         }
 
         if (!data.username.trim()) {
-            setErrorMessage({ field: 'username', message: 'Please fill in username' });
+
+            setErrorMessage({
+                field: 'username',
+                message: 'Please fill in username',
+            });
 
             return;
         }
 
         if (!data.password.trim()) {
-            setErrorMessage({ field: 'password', message: 'Please fill in password' });
+
+            setErrorMessage({
+                field: 'password',
+                message: 'Please fill in password',
+            });
 
             return;
         }
 
         if (!data.password_confirmation.trim()) {
-            setErrorMessage({ field: 'password_confirmation', message: 'Please fill in password confirmation' });
+
+            setErrorMessage({
+                field: 'password_confirmation',
+                message: 'Please confirm password',
+            });
 
             return;
         }
 
-        if (data.password_confirmation !== data.password) {
-            setErrorMessage({ field: 'password_confirmation', message: 'Passwords does not match' });
+        if (data.password !== data.password_confirmation) {
+
+            setErrorMessage({
+                field: 'password_confirmation',
+                message: 'Passwords do not match',
+            });
 
             return;
         }
 
-        post('/register-user', {
-            onSuccess: (data) => {
-                console.log('Response JSON:', data);
-            },
-            onError: (msg) => {
-                console.error(msg);
-            },
-            onFinish: () => {
-                setData(prev => ({
-                    ...prev,
-                    password: '',
-                    password_confirmation: '',
-                }));
+        try {
 
-            },
-        });
+            setProcessing(true);
+
+            const response = await axios.post('/register-user', data);
+
+            console.log(response.data);
+
+            alert(response.data.message);
+
+            // clear form
+            setData({
+                email: '',
+                username: '',
+                password: '',
+                password_confirmation: '',
+            });
+
+        } catch (error: any) {
+
+            if (error.response?.status === 422) {
+
+                const errors = error.response.data.errors;
+                console.log(errors);
+                
+
+                setServerError({
+                    email_error: errors.email?.[0] || '',
+                    username_error: errors.username?.[0] || '',
+                    password_error: errors.password?.[0] || '',
+                });
+
+            } else {
+
+                console.error(error);
+
+                alert('Something went wrong');
+            }
+
+        } finally {
+
+            setProcessing(false);
+        }
     };
+
 
     return (
         <form onSubmit={handleSubmit} method="POST">
@@ -95,6 +159,7 @@ const Register = () => {
                         <label htmlFor="password">Password</label>
                         <input onChange={handleChange} value={data.password} type="password" id="password" name="password" className="w-full p-2 bg-gray-100 rounded-xl outline-none" />
                         <small className="block text-red-500">{errorMessage.field === 'password' && errorMessage.message}</small>
+                        <small className="block text-red-500 text-center">{serverError?.password_error}</small>
                     </div>
 
                     <div className="block">
@@ -104,11 +169,17 @@ const Register = () => {
                     </div>
                 </div>
 
-                <div className="block">
+                <div className="block space-y-2">
                     <button disabled={processing} type="submit" className="w-full py-2 px-4 bg-[#144BE9] text-white font-semibold rounded-xl hover:bg-blue-900">
                         {processing ? 'Registering ...' : 'Register'}
                     </button>
+                    <p>
+                        <small className="block text-red-500 text-center">{serverError?.email_error}</small>
+                        <small className="block text-red-500 text-center">{serverError?.username_error}</small>
+                    </p>
                 </div>
+
+
             </div>
         </form>
     );
